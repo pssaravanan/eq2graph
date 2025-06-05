@@ -2,7 +2,7 @@ import math
 from eqparser.MathExprListener import MathExprListener
 from eqparser.MathExprParser import MathExprParser
 
-class EvalListener(MathExprListener):
+class ParserListener(MathExprListener):
     def __init__(self, variables=None):
         self.stack = []
         self.vars = variables or {}
