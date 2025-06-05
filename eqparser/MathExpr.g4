@@ -1,48 +1,23 @@
 grammar MathExpr;
 
+// Parser Rules
 expr
-    : '-' expr                      # unaryMinusExpr
-    | '+' expr                      # unaryPlusExpr
-    | expr '!'                      # factorialExpr
-    | expr '^' expr                 # powerExpr
-    | expr op=('*'|'/') expr        # mulDivExpr
-    | expr op=('+'|'-') expr        # addSubExpr
-    | funcExpr                      # functionExpr
-    | constant                      # constantExpr
-    | '(' expr ')'                  # parenExpr
-    | NUMBER                        # numberExpr
-    | VARIABLE                      # variableExpr
+    : expr op=('*'|'/') expr         # MulDivExpr
+    | expr op=('+'|'-') expr         # AddSubExpr
+    | expr '^' expr                  # PowerExpr
+    | '-' expr                       # NegateExpr
+    | '(' expr ')'                   # ParensExpr
+    | function                       # FunctionExpr
+    | NUMBER                         # NumberExpr
+    | VARIABLE                       # VariableExpr
     ;
 
-funcExpr
-    : FUNC '(' expr (',' expr)* ')'    # multiArgFunc
-    | LOG (BASE)? '(' expr ')'         # logExpr
+function
+    : FUNC_NAME '(' expr ')'
     ;
 
-FUNC
-    : 'sin' | 'cos' | 'tan'
-    | 'asin' | 'acos' | 'atan'
-    | 'sqrt' | 'abs' | 'exp'
-    | 'floor' | 'ceil'
-    | 'min' | 'max'
-    ;
-
-LOG
-    : 'log' | 'ln'
-    ;
-
-constant
-    : 'pi' | 'π' | 'e'
-    ;
-
-BASE
-    : [0-9]+ ;
-
-NUMBER
-    : [0-9]+ ('.' [0-9]+)? ( [eE] [+-]? [0-9]+ )? ;
-
-VARIABLE
-    : [a-zA-Z_] [a-zA-Z0-9_]* ;
-
-WS
-    : [ \t\r\n]+ -> skip ;
+// Lexer Rules
+FUNC_NAME: 'sin' | 'cos' | 'tan' | 'log' | 'log10' | 'ln' | 'sqrt' | 'abs';
+NUMBER: [0-9]+ ('.' [0-9]+)?;
+VARIABLE: [a-zA-Z];
+WS: [ \t\r\n]+ -> skip;

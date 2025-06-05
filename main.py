@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
+from .eqparser.MathExprLexer import MathExprLexer
 
 app = FastAPI()
 
