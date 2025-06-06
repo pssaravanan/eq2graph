@@ -1,9 +1,10 @@
 import math
 from eqparser.MathExprListener import MathExprListener
 from eqparser.MathExprParser import MathExprParser
+import numpy as np
 
 class ParserListener(MathExprListener):
-    def __init__(self, variables=None):
+    def __init__(self, variables: dict[str, np.ndarray] = None):
         self.stack = []
         self.vars = variables or {}
 
@@ -12,7 +13,10 @@ class ParserListener(MathExprListener):
 
     def exitVariableExpr(self, ctx:MathExprParser.VariableExprContext):
         var = ctx.getText()
-        self.stack.append(self.vars.get(var, 0))
+        value = self.vars.get(var, 0)
+        if not isinstance(value, np.ndarray):
+            raise TypeError(f"Variable '{var}' is expected to be a numpy ndarray, but got {type(value).__name__}")
+        self.stack.append(value)
 
     def exitNegateExpr(self, ctx:MathExprParser.NegateExprContext):
         val = self.stack.pop()
@@ -25,7 +29,6 @@ class ParserListener(MathExprListener):
     def exitPowerExpr(self, ctx:MathExprParser.PowerExprContext):
         right = self.stack.pop()
         left = self.stack.pop()
-        print(left, right)
         self.stack.append(left ** right)
 
     def exitMulDivExpr(self, ctx:MathExprParser.MulDivExprContext):
@@ -48,13 +51,13 @@ class ParserListener(MathExprListener):
         arg = self.stack.pop()
         fname = ctx.function().FUNC_NAME().getText()
         func_map = {
-            'sin': math.sin,
-            'cos': math.cos,
-            'tan': math.tan,
-            'log': math.log,     # natural log
-            'log10': math.log10,
-            'ln': math.log,
-            'sqrt': math.sqrt,
-            'abs': abs,
+            'sin': np.sin,
+            'cos': np.cos,
+            'tan': np.tan,
+            'log': np.log,     # natural log
+            'log10': np.log10,
+            'ln': np.log,
+            'sqrt': np.sqrt,
+            'abs': np.abs,
         }
         self.stack.append(func_map[fname](arg))
