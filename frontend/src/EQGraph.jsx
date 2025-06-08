@@ -42,7 +42,8 @@ function Playground({ onRun }) {
             height: "100%",
             boxSizing: "border-box",
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            class: 'text-3xl font-bold underline'
         }}>
             <h3>Playground</h3>
             <textarea
