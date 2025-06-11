@@ -69,6 +69,45 @@ function EqForm({onSubmit}){
     const [type, setType] = useState("equation");
     const [points, setPoints] = useState("");
 
+    // Helper to call backend API
+    async function callApi(payload) {
+        // Replace with your backend endpoint
+        const url = "/api/graph";
+        try {
+            await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+        } catch (err) {
+            // Handle error as needed
+        }
+    }
+
+    // Handler for blur event
+    const handleBlur = async (e) => {
+        let payload = { type, color: e.target.form.color.value };
+        if (type === "equation") {
+            payload.eq = e.target.form.eq.value;
+        } else {
+            let pts = [];
+            try {
+                pts = JSON.parse(points);
+            } catch {
+                pts = points
+                    .split("\n")
+                    .map(line => line.trim())
+                    .filter(Boolean)
+                    .map(line => {
+                        const [x, y] = line.split(",").map(Number);
+                        return { x, y };
+                    });
+            }
+            payload.points = pts;
+        }
+        await callApi(payload);
+    };
+
     return (
         <form
             onSubmit={e => {
@@ -113,7 +152,14 @@ function EqForm({onSubmit}){
                 {type === "equation" ? (
                     <label style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "70%" }}>
                         Eq:
-                        <input type="text" name="eq" placeholder="e.g. 3*x^2 + 2*x + 1" required style={{ width: "100%" }} />
+                        <input
+                            type="text"
+                            name="eq"
+                            placeholder="e.g. 3*x^2 + 2*x + 1"
+                            required
+                            style={{ width: "100%" }}
+                            onBlur={handleBlur}
+                        />
                     </label>
                 ) : (
                     <label style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "70%" }}>
@@ -126,6 +172,7 @@ function EqForm({onSubmit}){
                             onChange={e => setPoints(e.target.value)}
                             required
                             style={{ width: "100%" }}
+                            onBlur={handleBlur}
                         />
                     </label>
                 )}
