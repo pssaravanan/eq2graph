@@ -1,4 +1,54 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  LineElement,
+  PointElement,
+  LinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  CategoryScale,
+} from 'chart.js';
+
+ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
+
+// Example: y = 3x² + 2x + 1
+function generatePolynomialData(fn, xRange = [-10, 10], step = 0.5) {
+  const data = [];
+  for (let x = xRange[0]; x <= xRange[1]; x += step) {
+    const y = fn(x);
+    data.push({ x, y });
+  }
+  return data;
+}
+
+const dataPoints = generatePolynomialData(x => 3 * x * x + 2 * x + 1);
+
+const gdata = {
+  datasets: [
+    {
+      label: 'y = 3x² + 2x + 1',
+      data: dataPoints,
+      borderColor: 'rgba(75,192,192,1)',
+      fill: false,
+      tension: 0.1,
+      parsing: false,
+    },
+  ],
+};
+
+const options = {
+  responsive: true,
+  maintainAspectRatio: true,
+  scales: {
+    x: {
+      type: 'linear',
+      position: 'bottom',
+    },
+  },
+};
 
 // Dummy Graph Component
 function Graph({ data }) {
@@ -11,14 +61,88 @@ function Graph({ data }) {
             alignItems: "center",
             justifyContent: "center"
         }}>
-            <div>
-                <h3>Graph Output</h3>
-                <pre>{JSON.stringify(data, null, 2)}</pre>
-            </div>
+            <Line data={gdata} options={options} />;
         </div>
     );
 }
+function EqForm({onSubmit}){
+    const [type, setType] = useState("equation");
+    const [points, setPoints] = useState("");
 
+    return (
+        <form
+            onSubmit={e => {
+                e.preventDefault();
+                const color = e.target.color.value;
+                if (type === "equation") {
+                    const eq = e.target.eq.value;
+                    onSubmit({ type, eq, color });
+                } else {
+                    let pts = [];
+                    try {
+                        pts = JSON.parse(points);
+                    } catch {
+                        pts = points
+                            .split("\n")
+                            .map(line => line.trim())
+                            .filter(Boolean)
+                            .map(line => {
+                                const [x, y] = line.split(",").map(Number);
+                                return { x, y };
+                            });
+                    }
+                    onSubmit({ type, points: pts, color });
+                }
+            }}
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 0,
+                alignItems: "flex-start",
+                justifyContent: "flex-start"
+            }}
+        >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
+                <label style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "100%" }}>
+                    Type:
+                    <select value={type} onChange={e => setType(e.target.value)} name="type" style={{ width: "100%" }}>
+                        <option value="equation">Equation</option>
+                        <option value="point">Point</option>
+                    </select>
+                </label>
+                {type === "equation" ? (
+                    <label style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "70%" }}>
+                        Eq:
+                        <input type="text" name="eq" placeholder="e.g. 3*x^2 + 2*x + 1" required style={{ width: "100%" }} />
+                    </label>
+                ) : (
+                    <label style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "70%" }}>
+                        Points:
+                        <textarea
+                            name="points"
+                            placeholder='e.g. [{"x":1,"y":2},{"x":2,"y":4}] or one "x,y" per line'
+                            rows={4}
+                            value={points}
+                            onChange={e => setPoints(e.target.value)}
+                            required
+                            style={{ width: "100%" }}
+                        />
+                    </label>
+                )}
+                <label style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: "30%", gap: 4 }}>
+                    Color:
+                    <input
+                        type="color"
+                        name="color"
+                        defaultValue="#4bc0c0"
+                        style={{ width: 32, height: 32, border: "none", background: "none", padding: 0 }}
+                        aria-label="Pick a color for the graph"
+                    />
+                </label>
+            </div>
+        </form>
+    )
+}
 // Playground Component
 function Playground({ onRun }) {
     const [input, setInput] = useState("");
@@ -46,15 +170,7 @@ function Playground({ onRun }) {
             class: 'text-3xl font-bold underline'
         }}>
             <h3>Playground</h3>
-            <textarea
-                style={{ flex: 1, marginBottom: 8, resize: "none" }}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder='Enter JSON data for the graph...'
-            />
-            <button onClick={handleRun} style={{ alignSelf: "flex-end" }}>
-                Run
-            </button>
+            <EqForm onSubmit={(e) => {}}/>
         </div>
     );
 }
