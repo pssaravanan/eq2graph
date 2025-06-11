@@ -61,26 +61,30 @@ function Graph({ data }) {
             alignItems: "center",
             justifyContent: "center"
         }}>
-            <Line data={gdata} options={options} />;
+            <Line data={data} options={options} />;
         </div>
     );
 }
-function EqForm({onSubmit}){
+function EqForm({setGraphData}){
     const [type, setType] = useState("equation");
     const [points, setPoints] = useState("");
 
     // Helper to call backend API
     async function callApi(payload) {
         // Replace with your backend endpoint
-        const url = "/api/graph";
+        const url = "http://localhost:8000/api/plot";
         try {
-            await fetch(url, {
+            return await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
         } catch (err) {
             // Handle error as needed
+            console.log(err)
+            return {
+                datasets: []
+            }
         }
     }
 
@@ -105,7 +109,18 @@ function EqForm({onSubmit}){
             }
             payload.points = pts;
         }
-        await callApi(payload);
+        const data = await callApi(payload);
+        const results = await data.json()
+        const datasets = {
+            label: payload.eq,
+            data: results['data'],
+            borderColor: 'rgba(75,192,192,1)',
+            fill: false,
+            tension: 0.1,
+            parsing: false,
+        }
+        window.dd = datasets
+        if (data) setGraphData({datasets: [datasets]});
     };
 
     return (
@@ -192,19 +207,6 @@ function EqForm({onSubmit}){
 }
 // Playground Component
 function Playground({ onRun }) {
-    const [input, setInput] = useState("");
-
-    const handleRun = () => {
-        // Simulate parsing input to data
-        let data;
-        try {
-            data = JSON.parse(input);
-        } catch {
-            data = { error: "Invalid JSON" };
-        }
-        onRun(data);
-    };
-
     return (
         <div style={{
             background: "#fff",
@@ -217,14 +219,14 @@ function Playground({ onRun }) {
             class: 'text-3xl font-bold underline'
         }}>
             <h3>Playground</h3>
-            <EqForm onSubmit={(e) => {}}/>
+            <EqForm setGraphData={onRun}/>
         </div>
     );
 }
 
 // Main App Layout
 export default function EQGraph() {
-    const [graphData, setGraphData] = useState({});
+    const [graphData, setGraphData] = useState({datasets:[]});
 
     return (
         <div style={{
