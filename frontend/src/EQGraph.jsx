@@ -114,7 +114,7 @@ function EqForm({setGraphData}){
         const datasets = {
             label: payload.eq,
             data: results['data'],
-            borderColor: 'rgba(75,192,192,1)',
+            borderColor: payload.color,
             fill: false,
             tension: 0.1,
             parsing: false,
